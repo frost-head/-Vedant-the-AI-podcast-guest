@@ -1,7 +1,7 @@
 const container = document.getElementById('container');
 const canvas = document.getElementById('canvas1');
-const file = document.getElementById('fileupload');
-console.log(file)
+// const aduio = new Audio('/audio');
+
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -10,30 +10,42 @@ const ctx = canvas.getContext('2d');
 ctx.lineCap = 'round';
 let audioSource;
 let analyser;
+// async function fetchAudio() {
+//     try {
+//         const audioUrl = '/audio';
+//         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+//         const response = await fetch(audioUrl);
 
-async function fetchAudio() {
-    try {
-      const response = await fetch('/get_audio');
-      const data = await response.json();
-      const audioBase64 = data.audio_base64;
-    
-      // Use the audioBase64 string as needed, e.g., create a URL for playback
-      const audioUrl = 'data:audio/wav;base64,'+ audioBase64;
-      const audio = new Audio(audioUrl);
-      audio.load();
-      audio.play();
-    } catch (error) {
-      console.error('Error fetching audio:', error);
-    }
-  }
-  
+//         // Read the response as an ArrayBuffer
+//         const audioBuffer = await response.arrayBuffer();
+
+//         // Decode the audio data
+//         const decodedAudio = await audioContext.decodeAudioData(audioBuffer);
+
+//         // Create a buffer source node and connect it to the audio context
+//         const source = audioContext.createBufferSource();
+//         source.buffer = decodedAudio;
+//         source.connect(audioContext.destination);
+
+//         // Play the audio
+//         source.start();
+//     } catch (error) {
+//         console.error('Error fetching or playing audio:', error);
+//     }
+
+// }
+
   
 container.addEventListener('click', function(){
 
+    // fetchAudio();
+    // console.log('called');
+    
     const audio1 = document.getElementById('audio1');
-
+    
     const audioContext = new AudioContext();
-    fetchAudio();
+    // console.log(audio1)
+    audio1.play();
     audioSource = audioContext.createMediaElementSource(audio1);
     analyser = audioContext.createAnalyser();
     audioSource.connect(analyser);
@@ -60,7 +72,6 @@ file.addEventListener('change', function(){
     const files = this.files;
     const audio1 = document.getElementById('audio1');
     audio1.src = URL.createObjectURL(files[0]);
-    audio1.load();
     audio1.play();
 
     audioSource = audioContext.createMediaElementSource(audio1);
