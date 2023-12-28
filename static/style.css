@@ -1,0 +1,54 @@
+body{
+    background-color: aliceblue;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+h1 {
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+#container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: black;
+    width: 100vw;
+    height: 100vw;
+}
+.can{
+    position: absolute;
+    top: 20vh;
+    left: 15vh;
+    width: 30%;
+    height: 30%;
+    border-radius: 500px;
+    background-color:rgba(255, 255, 255);
+}
+#canvas1 {
+    position: absolute;
+    top: 20vh;
+    left: 15vh;
+    width: 30%;
+    height: 30%;
+    border-radius: 500px;
+    
+    filter: blur(30px);
+}
+#audio1 {
+    width: 50%;
+    margin: 50px auto;
+    display: block;
+}
+#fileupload {
+    position: absolute;
+    top: 150px;
+    color: white;
+    z-index: 100;
+}

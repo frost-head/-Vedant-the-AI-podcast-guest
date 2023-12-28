@@ -4,12 +4,22 @@
     <meta charset="UTF-8">
     <title>Web Speech Recorder</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <p>
-        <button id="startRecording">Start recording</button>
-        <button id="stopRecording" disabled>Stop recording</button>
-    </p>
+
+    
+    <div id='container'>
+        <div class="can"></div>
+        <canvas id="canvas1"></canvas>
+        <audio id="audio1" controls >
+            <source src="/static/9fcea0cb-0562-4794-88f7-581ff7983b83.mp3" type="audio/x-wav;codec=pcm" >
+        </audio>
+        <p style="z-index: 100;">
+            <button id="startRecording">Start recording</button>
+            <button id="stopRecording" disabled>Stop recording</button>
+        </p>
+        <!-- <input type='file' id='fileupload' accept='audio/*' src="/static/9fcea0cb-0562-4794-88f7-581ff7983b83.mp3" /> -->
 </body>
 <script>
     navigator
@@ -60,4 +70,6 @@
         rec.stop();
     };
 </script>
+<script src="/static/Script.js"></script>
+
 </html>
