@@ -10,33 +10,10 @@ const ctx = canvas.getContext('2d');
 ctx.lineCap = 'round';
 let audioSource;
 let analyser;
-// async function fetchAudio() {
-//     try {
-//         const audioUrl = '/audio';
-//         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-//         const response = await fetch(audioUrl);
-
-//         // Read the response as an ArrayBuffer
-//         const audioBuffer = await response.arrayBuffer();
-
-//         // Decode the audio data
-//         const decodedAudio = await audioContext.decodeAudioData(audioBuffer);
-
-//         // Create a buffer source node and connect it to the audio context
-//         const source = audioContext.createBufferSource();
-//         source.buffer = decodedAudio;
-//         source.connect(audioContext.destination);
-
-//         // Play the audio
-//         source.start();
-//     } catch (error) {
-//         console.error('Error fetching or playing audio:', error);
-//     }
-
-// }
+const audio1 = document.getElementById('audio1');
 
   
-container.addEventListener('click', function(){
+canvas.addEventListener('click', function(){
 
     // fetchAudio();
     // console.log('called');
@@ -45,7 +22,12 @@ container.addEventListener('click', function(){
     
     const audioContext = new AudioContext();
     // console.log(audio1)
-    audio1.play();
+    
+    if (audio1.paused) {
+        audio1.play();
+    } else {
+        audio1.pause();
+    }
     audioSource = audioContext.createMediaElementSource(audio1);
     analyser = audioContext.createAnalyser();
     audioSource.connect(analyser);
@@ -68,11 +50,12 @@ container.addEventListener('click', function(){
     animate();
 });
 
-file.addEventListener('change', function(){
+
+
+audio1.addEventListener('play', function(){
     const files = this.files;
     const audio1 = document.getElementById('audio1');
     audio1.src = URL.createObjectURL(files[0]);
-    audio1.play();
 
     audioSource = audioContext.createMediaElementSource(audio1);
     analyser = audioContext.createAnalyser();
@@ -177,3 +160,5 @@ function drawVisualiser(bufferLength, x, barWidth, barHeight, dataArray){
 //         ctx.fillRect(x, canvas.height-barHeight - 30, barWidth,15);
 //         ctx.fi
 //     }}
+
+z

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Speech Recorder</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    
+    <div id='container'>
+        <div class="can"></div>
+        <canvas id="canvas1"></canvas>
+        <h2 id="name">Vedant</h2>
+        <audio id="audio1" autoplay style="display: hidden;">
+            <source src="/static/Text.wav" type="audio/wav">
+        </audio>
+        <div id="transcriptionContainer">
+            <h2>
+                Response
+            </h2>
+            <br>
+            <br>
+            <!-- Add your transcription content here -->
+            <!-- <p data-time="0">Transcription at 0 seconds</p>
+            <p data-time="10">Transcription at 10 seconds</p> -->
+            {% if session['sentences'] and session['timestamps'] %}
+            
+                {% for i in session['sentences'] %}
+                    <p class="sentence" data-time={{session['timestamps'][session['sentences'].index(i)]}}>{{i}}</p>
+                    <br>
+                {% endfor %}
+
+            
+            {% else %}
+            <p>There are no sentences to display.</p>
+            {% endif %}
+            <!-- Add more transcription segments with data-time attributes -->
+        </div>
+
+        <div class="buttons" style="z-index: 100;">
+            <button id="startRecording">Say Something</button>
+            <button id="stopRecording" style="display: none;" disabled>Ask Vedant</button>
+        </div>
+    </div>
+        <!-- <input type='file' id='fileupload' accept='audio/*' src="/static/9fcea0cb-0562-4794-88f7-581ff7983b83.mp3" /> -->
+</body>
+<script>
+    const audioPlayer = document.getElementById("audio1");
+    audioPlayer.addEventListener("timeupdate", function () {
+    const currentTime = audioPlayer.currentTime;
+
+    // Loop through transcription segments and show/hide the relevant ones
+    const transcriptionSegments = transcriptionContainer.querySelectorAll("p");
+    
+        for (let i = 0; i < transcriptionSegments.length; i++) {
+            const segment = transcriptionSegments[i];
+            const segmentTime = parseFloat(segment.getAttribute("data-time"));
+
+            if (!isNaN(segmentTime)) {
+                if (currentTime >= segmentTime) {
+                    // Display the current sentence
+                    segment.style.display = "block";
+                } else {
+                    // Hide older sentences
+                    segment.style.display = "none";
+                }
+            } else {
+                // Handle the case where segmentTime is not a valid number
+                console.error("Invalid segment time:", segmentTime);
+            }
+        }
+    });
+
+    navigator
+        .mediaDevices
+        .getUserMedia({audio: true})
+        .then(stream => { handlerFunction(stream) });
+
+    function handlerFunction(stream) {
+        rec = new MediaRecorder(stream);
+        rec.ondataavailable = e => {
+            audioChunks.push(e.data);
+            if (rec.state == "inactive") {
+                let blob = new Blob(audioChunks, {type: 'audio/mpeg'});
+                sendData(blob);
+            }
+        }
+    }
+
+    function sendData(data) {
+        var form = new FormData();
+        form.append('file', data, 'data.mp3');
+        form.append('title', 'data.mp3');
+        //Chrome inspector shows that the post data includes a file and a title.
+        $.ajax({
+            type: 'POST',
+            url: '/save-record',
+            data: form,
+            cache: false,
+            processData: false,
+            contentType: false
+        }).done(function(data) {
+            window.location.replace('/Processing');
+        });
+    }
+
+    startRecording.onclick = e => {
+        console.log('Recording are started..');
+        startRecording.disabled = true;
+        stopRecording.disabled = false;
+        startRecording.style.display = 'none';
+        stopRecording.style.display = 'block';
+
+        audioChunks = [];
+        rec.start();
+    };
+
+    stopRecording.onclick = e => {
+        console.log("Recording are stopped.");
+        startRecording.disabled = false;
+        stopRecording.disabled = true;
+        startRecording.style.display = 'block';
+        stopRecording.style.display = 'none';
+
+        rec.stop();
+    };
+</script>
+<script src="/static/Script.js"></script>
+
+</html>
