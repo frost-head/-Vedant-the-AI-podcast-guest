@@ -57,17 +57,17 @@ h1 {
     z-index: 100;
 }
 .transcription{
-    position: absolute;
-    left: 50vw;
-    top: 25vh;
-    padding: 10px;
 
-    width: 45%;
+    padding: 10px;
+    width: 90%;
+
 }
 
 #transcriptionContainer{
     padding-top: 10px;
-    height: 40vh;
+
+    max-height: 50vh;
+    height: min-content;
     overflow-y: scroll;
 }
 
@@ -78,19 +78,26 @@ h1 {
 }
 
 .questionContainer{
-    position: absolute;
-    left: 50vw;
-    top: 0;
+    height: max-content;
     margin-top: 8vh;
     padding: 10px;
-    height: 30vh;
-    width: 45%;
+    max-height: 30vh;
+    width: 90%;
     overflow-y: hidden;
 }
 .questionContainer h2{
     font-size: 36px;
 }
 
+.containers{
+    position: absolute;
+    left: 50vw;
+    width: 50%;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 90vh;
+}
 
 
 .sentence{

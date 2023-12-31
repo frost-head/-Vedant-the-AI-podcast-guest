@@ -18,6 +18,8 @@
         <audio id="audio1" autoplay style="display: hidden;">
             <source src="/static/Text.wav" type="audio/wav">
         </audio>
+        <div class="containers">
+
         <div class="questionContainer">
             <h2>
                 Question
@@ -50,8 +52,7 @@
             {% if session['sentences'] and session['timestamps'] %}
 
             {% for i in session['sentences'] %}
-            <p class="sentence" data-time={{session['timestamps'][session['sentences'].index(i)]}}>{{i}}</p>
-            <br>
+            <p class="sentence" style="display: none;" data-time={{session['timestamps'][session['sentences'].index(i)]}}>{{i}} <br> <br> <p></p></p>
             {% endfor %}
 
 
@@ -60,6 +61,7 @@
             {% endif %}
             <!-- Add more transcription segments with data-time attributes -->
         </div>
+    </div>
     </div>
 
         <div class="buttons" style="z-index: 100;">
@@ -70,6 +72,7 @@
     <!-- <input type='file' id='fileupload' accept='audio/*' src="/static/9fcea0cb-0562-4794-88f7-581ff7983b83.mp3" /> -->
 </body>
 <script>
+    
     function scrollToBottom() {
         var scrollContainer = document.getElementById('transcriptionContainer');
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -84,10 +87,11 @@
         for (let i = 0; i < transcriptionSegments.length; i++) {
             const segment = transcriptionSegments[i];
             const segmentTime = parseFloat(segment.getAttribute("data-time"));
-            scrollToBottom();
+
             if (!isNaN(segmentTime)) {
                 if (currentTime >= segmentTime) {
                     // Display the current sentence
+                    scrollToBottom();
                     segment.style.display = "block";
                 } else {
                     // Hide older sentences
