@@ -40,7 +40,7 @@ def get_embedding_for_text(text, max_seq_length=512):
     return embedding
 
 # Function to create embeddings for overlapping paragraphs of data and store in Faiss index
-def create_data_embeddings_and_index(pdf_folder, existing_index=None, window_size=5):
+def create_data_embeddings_and_index(pdf_folder, existing_index=None, window_size=3):
     data_embeddings = []
 
     if existing_index is None:
@@ -56,25 +56,23 @@ def create_data_embeddings_and_index(pdf_folder, existing_index=None, window_siz
         # Use SpaCy for sentence tokenization
         sentences = [str(sentence) for sentence in nlp(text).sents]
 
-        for i in range(len(sentences) - window_size + 1):
+        for i in range(0, len(sentences), window_size - 1):
             # Combine overlapping sentences to create a paragraph
-            paragraph_lines = sentences[i:i + window_size]
-            paragraph = " ".join(paragraph_lines)
+            paragraph = " ".join(sentences[i:i + window_size])
 
             # Ensure the paragraph is not empty
             if paragraph.strip():
-                # Create embedding for the specified chunk
                 embedding = get_embedding_for_text(paragraph)
-                data_embeddings.append({"file_path": pdf_path, "embedding": embedding, "paragraph": paragraph})
+                data_embeddings.append({"embedding": embedding, "paragraph": paragraph})
                 data_index.add(np.array(embedding).astype('float32'))
 
     return data_embeddings, data_index
 
 # Function to retrieve relevant paragraphs based on a query
-def retrieve_relevant_paragraphs(query_text, data_embeddings, data_index, k=2):
-    if os.path.exists("data_index.index"):
-        data_index = load_faiss_index()
-        data_embeddings = load_data_embeddings()
+def retrieve_relevant_paragraphs(query_text, k=2):
+
+    data_index = load_faiss_index()
+    data_embeddings = load_data_embeddings()
     query_embedding = get_embedding_for_text(query_text)
     _, closest_indices = data_index.search(np.array(query_embedding).astype('float32'), k)
     relevant_paragraphs = [data_embeddings[i] for i in closest_indices.flatten()]
@@ -93,8 +91,30 @@ def load_faiss_index(data_index_path="/media/frost-head/files/Vedant_Index/data_
     return data_index
 
 # Function to add new file to existing index
-def add_new_file(pdf_path, data_embeddings, data_index, window_size=5):
+def add_new_file(pdf_path, window_size=3):
+    data_index = load_faiss_index()
+    data_embeddings = load_data_embeddings()
     text = extract_text_from_pdf(pdf_path)
+    
+    sentences = [str(sentence) for sentence in nlp(text).sents]
+
+    for i in range(0, len(sentences), window_size - 1):
+        # Combine overlapping sentences to create a paragraph
+        paragraph = " ".join(sentences[i:i + window_size])
+
+        # Ensure the paragraph is not empty
+        if paragraph.strip():
+            embedding = get_embedding_for_text(paragraph)
+            data_embeddings.append({"embedding": embedding, "paragraph": paragraph})
+            data_index.add(np.array(embedding).astype('float32'))
+    save_data_embeddings(data_embeddings)
+    save_faiss_index(data_index)
+    return data_embeddings, data_index
+
+# stores the chat history 
+def add_chat_history(text, window_size=2):
+    data_index = load_faiss_index()
+    data_embeddings = load_data_embeddings()
 
     sentences = [str(sentence) for sentence in nlp(text).sents]
 
@@ -105,7 +125,7 @@ def add_new_file(pdf_path, data_embeddings, data_index, window_size=5):
         # Ensure the paragraph is not empty
         if paragraph.strip():
             embedding = get_embedding_for_text(paragraph)
-            data_embeddings.append({"file_path": pdf_path, "embedding": embedding, "paragraph": paragraph})
+            data_embeddings.append({"embedding": embedding, "paragraph": paragraph})
             data_index.add(np.array(embedding).astype('float32'))
     save_data_embeddings(data_embeddings)
     save_faiss_index(data_index)
@@ -146,3 +166,5 @@ def load_data_embeddings(data_embeddings_path="/media/frost-head/files/Vedant_In
 # # data_embeddings, data_index = add_new_file(new_pdf_path, data_embeddings, data_index, window_size=3)
 # # save_faiss_index(data_index)
 # # save_data_embeddings(data_embeddings)
+
+# add_new_file('/media/frost-head/files/Vedanat_knowledge')
