@@ -70,15 +70,18 @@ def create_data_embeddings_and_index(pdf_folder, existing_index=None, window_siz
 
 # Function to retrieve relevant paragraphs based on a query
 def retrieve_relevant_paragraphs(query_text, k=2):
-
     data_index = load_faiss_index()
     data_embeddings = load_data_embeddings()
     query_embedding = get_embedding_for_text(query_text)
-    _, closest_indices = data_index.search(np.array(query_embedding).astype('float32'), k)
-    relevant_paragraphs = [data_embeddings[i] for i in closest_indices.flatten()]
+    D, I = data_index.search(np.array(query_embedding).astype('float32'), k)
+    # relevant_paragraphs = [data_embeddings[i] for i in closest_indices.flatten() ]
+    relevant_documents = [data_embeddings[doc_id] for doc_id, similarity in zip(I[0], D[0]) if similarity > 0.7]
+
+
     context = ''
-    for i in relevant_paragraphs:
+    for i in relevant_documents:
         context += i['paragraph']
+    context = context.replace('\n', ' ')
     return context
 
 # Function to save Faiss index to a local file
@@ -116,19 +119,18 @@ def add_chat_history(text, window_size=2):
     data_index = load_faiss_index()
     data_embeddings = load_data_embeddings()
 
-    sentences = [str(sentence) for sentence in nlp(text).sents]
+    # sentences = [str(sentence) for sentence in nlp(text).sents]
 
-    for i in range(0, len(sentences), window_size):
+    for i in text:
         # Combine overlapping sentences to create a paragraph
-        paragraph = " ".join(sentences[i:i + window_size])
 
         # Ensure the paragraph is not empty
-        if paragraph.strip():
-            embedding = get_embedding_for_text(paragraph)
-            data_embeddings.append({"embedding": embedding, "paragraph": paragraph})
+        if i.strip():
+            embedding = get_embedding_for_text(i)
+            data_embeddings.append({"embedding": embedding, "paragraph": i})
             data_index.add(np.array(embedding).astype('float32'))
-    save_data_embeddings(data_embeddings)
-    save_faiss_index(data_index)
+    save_chat_embeddings(data_embeddings)
+    save_chat_index(data_index)
     return data_embeddings, data_index
 
 # Function to save data embeddings to a local file
@@ -138,6 +140,40 @@ def save_data_embeddings(data_embeddings, data_embeddings_path="/media/frost-hea
 # Function to load data embeddings from a local file
 def load_data_embeddings(data_embeddings_path="/media/frost-head/files/Vedant_Index/data_embeddings.npy"):
     return list(np.load(data_embeddings_path, allow_pickle=True))
+
+def retrieve_relevant_chat(query_text,k=2):
+    # if os.path.exists("data_index.index"):
+    data_index = load_chat_index()
+    data_embeddings = load_chat_embeddings()
+    query_embedding = get_embedding_for_text(query_text)
+    D, I = data_index.search(np.array(query_embedding).astype('float32'), k)
+    # relevant_paragraphs = [data_embeddings[i] for i in closest_indices.flatten() ]
+    relevant_documents = [data_embeddings[doc_id] for doc_id, similarity in zip(I[0], D[0]) if similarity > 0.7]
+
+
+    context = ''
+    for i in relevant_documents:
+        context += i['paragraph']
+    context = context.replace('\n', ' ')
+    return context
+
+def save_chat_embeddings(chat_embeddings, chat_embeddings_path="/media/frost-head/files/Vedant_Index/chat_embeddings.npy"):
+    np.save(chat_embeddings_path, np.array(chat_embeddings, dtype=object))
+
+# Function to load chat embeddings from a local file
+def load_chat_embeddings(chat_embeddings_path="/media/frost-head/files/Vedant_Index/chat_embeddings.npy"):
+    return list(np.load(chat_embeddings_path, allow_pickle=True))
+
+# Function to save Faiss index to a local file
+def save_chat_index(chat_index, chat_index_path="/media/frost-head/files/Vedant_Index/chat_index.index"):
+    faiss.write_index(chat_index, chat_index_path)
+
+# Function to load Faiss index from a local file
+def load_chat_index(chat_index_path="/media/frost-head/files/Vedant_Index/chat_index.index"):
+    chat_index = faiss.read_index(chat_index_path)
+    return chat_index
+
+
 
 # Example usage
 # pdf_folder = "/media/frost-head/files/Vedanat_knowledge/"

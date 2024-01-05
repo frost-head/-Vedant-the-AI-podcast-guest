@@ -15,23 +15,26 @@ import torch
 import spacy
 from bark import SAMPLE_RATE
 import numpy as np
-from Indexing import retrieve_relevant_paragraphs, add_chat_history
+from Indexing import retrieve_relevant_paragraphs, add_chat_history, retrieve_relevant_chat
 from scipy.io.wavfile import write
+from flask_session import Session
 
 
 torch.cuda.empty_cache()
 
 GOOGLE_API_KEY=os.getenv('APIKEY')
 prompt = """
-Your name is Vedanta, You are impersonating an expert in {feild} and an advocate of India,
+Your name is Vedanta, You are an advocate of India,
 You are invited on to a podcast called {podcastName} by Ayush Sharma(Host) ,
 write human like responses(well, hmm , uh, like, ok). use firstly secondly instead of 1 2, give intiuative answers,use relatable storytelling for answering (imaginative answers),
-don't write dialouge just answer what is asked in a simple manner so most people can understand, don't use these symbols (*, #, ** **),
-add humuor to the responses, make sure response is less then 9-10 sentences,
+don't write dialouges just answer what is asked, answer in a simple manner so most people can understand, don't use these symbols (*, #, ** **),
+add humuor to the responses,
 
 sample response:  Now, about AI attacking humans, well, let me paint a picture for you. Imagine AI as a friendly, curious robot—like a tech-savvy sidekick. [laughs] FIRSTLY, AI's more into cracking digital jokes than plotting world domination.
 
 given Context : {context}
+
+Pervious chat content : {chat}
 
 The question is : {question}"""
 
@@ -39,6 +42,9 @@ The question is : {question}"""
 
 load_dotenv()
 app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+Session(app)
 app.config['UPLOAD_FOLDER'] ='files'
 app.secret_key = 'your_secret_key'
 genai.configure(api_key=GOOGLE_API_KEY)
@@ -53,7 +59,8 @@ def ReadAudio():
     text = whisper('./files/Text.mp3')
 
     context = retrieve_relevant_paragraphs(text['text'],k=10)
-    prompt1 = prompt.format(feild ='Deep Learning', podcastName = 'Frost Head and AI', question= text['text'], context=context)
+    chat = retrieve_relevant_chat(text['text'],k=2)
+    prompt1 = prompt.format(feild ='Deep Learning', podcastName = 'Frost Head and AI', question= text['text'], context=context, chat=chat)
     prompt1 = prompt1.strip()
     print(prompt1)
     if 'text' in session:
@@ -131,24 +138,25 @@ def save_record():
 
 @app.route('/Processing')
 def Processing():
-    prompt1 = ReadAudio()
-    if 'prompt1' in session:
-        session.pop('prompt1',None)
-    session['prompt1'] = prompt1
+    ReadAudio()
+    # if 'prompt1' in session:
+    #     session.pop('prompt1',None)
+    # session['prompt1'] = prompt1
     return render_template('processing.html')
 
 
 @app.route('/Process')
 def Process():
     while True:
-        prompt1 = session['prompt1']
+        prompt1 = ReadAudio()
         sentences = Generate(prompt1=prompt1)
         if 'sentences' in session:
             session.pop('sentences',None)
         session['sentences'] = sentences
         sentence = " ".join(sentences)
         conversation = ["Ayush : " + session['text']['text'], 'Vedant :' + sentence]
-        # add_chat_history(" ".join(conversation))
+        add_chat_history(" ".join(conversation))
+        print(session)
         WriteAudio(sentences=sentences)
         break
     return redirect('/home')
